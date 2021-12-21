@@ -1,5 +1,6 @@
 package com.example.top10downloaderapp
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -20,9 +21,9 @@ class RecyclerViewAdapter(private var appList:ArrayList<TopApp>): RecyclerView.A
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val appTop = appList[position]
         holder.binding.apply {
-            title.text = appTop.name
-//       Picasso.get().load(appTop.image).into(image)
-
+            title.text = appTop.title
+            Log.d("RecyclerAdapt", "onBindViewHolder: ${appTop.title}")
+            Picasso.get().load(appTop.image).into(image)
         }
     }
 
@@ -30,12 +31,4 @@ class RecyclerViewAdapter(private var appList:ArrayList<TopApp>): RecyclerView.A
         return appList.size
     }
 
-
-
-
-    fun updated(data: ArrayList<TopApp>) {
-
-        this.appList = data
-        notifyDataSetChanged()
-    }
 }

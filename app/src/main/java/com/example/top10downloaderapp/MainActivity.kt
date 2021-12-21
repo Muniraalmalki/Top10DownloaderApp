@@ -3,6 +3,7 @@ package com.example.top10downloaderapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
@@ -21,88 +22,79 @@ import java.net.URL
 class MainActivity : AppCompatActivity() {
 
     lateinit var appRecyclerView: RecyclerView
-    //lateinit var appsList : ArrayList<TopApp>
-      val appsList = ArrayList<TopApp>()
-   private lateinit var recyclerViewAdapter: RecyclerViewAdapter
+    private  var appsList = ArrayList<TopApp>()
+    private lateinit var recyclerViewAdapter: RecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-      // appsList = arrayListOf()
-
-        parseRRS()
 
         appRecyclerView = findViewById(R.id.recyclerView)
         recyclerViewAdapter = RecyclerViewAdapter(appsList)
         appRecyclerView.adapter = recyclerViewAdapter
-       // recyclerViewAdapter = RecyclerViewAdapter(appsList)
-//         appRecyclerView.adapter = recyclerViewAdapter
-
         appRecyclerView.layoutManager = LinearLayoutManager(this)
 
-
+        parseRRS()
     }
 
-
-    private fun parseRRS(){
+    private fun parseRRS() {
         CoroutineScope(IO).launch {
-            val data = async {
-               getData()
+            async {
+                getDataXML()
             }.await()
-                withContext(Main){
-                    //appRecyclerView.adapter = RecyclerViewAdapter(appList)
-                    recyclerViewAdapter = RecyclerViewAdapter(appsList)
-                    recyclerViewAdapter.updated(appsList)
-                    Log.d("data","get data Successfully${appsList}")
 
-                }
+            withContext(Main) {
+
+                recyclerViewAdapter = RecyclerViewAdapter(appsList)
+                appRecyclerView.adapter!!.notifyDataSetChanged()
+                Log.d("data", "get data Successfully${appsList}")
+
             }
         }
+    }
 
-   fun getData()
- {
+    fun getDataXML() {
+        var text = ""
+        var appTitle = ""
+        var appImage = ""
+        try {
+            val factory = XmlPullParserFactory.newInstance()
+            val parser = factory.newPullParser()
+            val url =
+                URL("http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml")
+            parser.setInput(url.openStream(), null)
+            var evenType = parser.eventType
+            while (evenType != XmlPullParser.END_DOCUMENT) {
+                val tagName = parser.name
+                when (evenType) {
+                    XmlPullParser.TEXT -> text = parser.text
+                    XmlPullParser.END_TAG -> when {
+                        tagName.equals("im:name", true) -> {
+                            appTitle = text
 
-          var text = ""
+                            Log.d("GetData", "getData: ${appTitle}")
+                        }
+                        tagName.equals("im:image", true) -> {
 
-          var appTitle = ""
-          var appImage = ""
-
-
-
-             try {
-                 val factory = XmlPullParserFactory.newInstance()
-                 val parser = factory.newPullParser()
-                 val url =
-                     URL("https://ax.itunes.apple.com/webobjects/mzstoreservices.woa/ws/rss/topfreeapplications/limit=10/xml")
-                 parser.setInput(url.openStream(), null)
-                 var evenType = parser.eventType
-                 while (evenType != XmlPullParser.END_DOCUMENT) {
-                     val tagName = parser.name
-                     when (evenType) {
-                         XmlPullParser.TEXT -> text = parser.text
-                         XmlPullParser.END_TAG -> when {
-                             tagName.equals("title", true) -> {
-                                 appTitle = text
-                             }
-                             tagName.equals("im:image", true) -> {
-                                 appImage = text
-                                 if (appImage[appImage.length - 8] == '0') {
-                                     appsList.add(TopApp(appTitle, appImage))
-                                 }
-                             }
-                             else -> {}
-                         }
-                         else -> {}
-                     }
-                     evenType = parser.next()
-                 }
-             } catch (e: XmlPullParserException) {
-                 e.printStackTrace()
-             } catch (e: IOException) {
-                 e.printStackTrace()
-             }
+                                appImage = text
+                              //  appsList.add(TopApp(appTitle, appImage))
+                            if (appImage[appImage.length - 8] == '0') {
+                                appsList.add(TopApp(appTitle, appImage))
+                           }
+                                Log.d("GetData", "getData: ${appImage}")
+                        }
+                        else -> {}
+                    }
+                    else -> {}
+                }
+                evenType = parser.next()
+            }
+        } catch (e: XmlPullParserException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+}
 
 
-
-     }
- }

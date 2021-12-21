@@ -11,7 +11,7 @@
         android:layout_width="270dp"
         android:layout_height="39dp"
         android:layout_marginTop="16dp"
-        android:text="Top 10 Free Downloads App"
+        android:text="App Store"
         android:textAlignment="center"
         android:textSize="20dp"
         app:layout_constraintEnd_toEndOf="parent"
